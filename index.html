@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAFIKOM NAMETAG</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* --- FORM INPUT --- */
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            width: 320px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .required-mark {
+            color: red;
+            margin-left: 3px;
+        }
+
+        /* Tanda bintang merah */
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-family: 'Montserrat', sans-serif;
+            box-sizing: border-box;
+        }
+
+        /* Style untuk error input kosong */
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fceae9;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #d35400;
+        }
+
+        /* --- PREVIEW AREA (Fixed 787x591) --- */
+        #preview-wrapper {
+            border: 1px solid #ddd;
+            padding: 0px;
+        }
+
+        #cardArea {
+            position: relative;
+            width: 787px;
+            height: 591px;
+            background-image: url('IDCARD.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            overflow: hidden;
+        }
+
+        /* --- FOTO --- */
+        #previewFoto {
+            position: absolute;
+            top: 185px;
+            left: 64px;
+            width: 210px;
+            height: 303px;
+            object-fit: cover;
+            border-radius: 21px;
+            z-index: 1;
+        }
+
+        /* --- TEKS --- */
+        .text-overlay {
+            position: absolute;
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800; /* Extra Bold agar sangat tebal dan tegas */
+            font-size: 15.5pt;
+            z-index: 2;
+            text-align: left;
+            letter-spacing: 0.6px;
+            /* Text shadow multi-layer agar teks terpisah kontras dari background sirkuit cyan */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        /* Sejajarkan label dan titik dua untuk NAMA, NIM, dan PRODI */
+        .text-overlay .field-label {
+            display: inline-block;
+            width: 88px;
+            flex-shrink: 0;
+        }
+
+        .text-overlay .field-colon {
+            display: inline-block;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .text-overlay .field-val {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Khusus Moto Hidup yang memiliki label lebih panjang */
+        #outMoto .field-label {
+            width: auto;
+        }
+
+        #outMoto .field-colon {
+            margin-left: 6px;
+            margin-right: 12px;
+        }
+
+        #outNama {
+            top: 230px;
+            left: 295px;
+            max-width: 460px;
+            line-height: 1.25;
+        }
+
+        #outNIM {
+            top: 282px;
+            left: 295px;
+            max-width: 460px;
+            white-space: nowrap;
+        }
+
+        #outKelompok {
+            top: 334px;
+            left: 295px;
+            max-width: 460px;
+            line-height: 1.25;
+        }
+
+        #outMoto {
+            top: 386px;
+            left: 295px;
+            width: 460px;
+            line-height: 1.35;
+        }
+
+        /* --- MODAL CROPPER --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .img-container {
+            max-height: 400px;
+            width: 100%;
+            overflow: hidden;
+            background: #333;
+        }
+
+        .img-container img {
+            max-width: 100%;
+        }
+
+        .btn-crop {
+            background-color: #e67e22;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background-color: #ccc;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>MAFIKOM NAMETAG</h1>
+
+    <div class="container">
+        <div class="input-section">
+            <div class="input-group">
+                <label>Upload Foto <span class="required-mark">*</span></label>
+                <input type="file" id="inputFoto" accept="image/*">
+            </div>
+
+            <div class="input-group">
+                <label>Nama Lengkap <span class="required-mark">*</span></label>
+                <input type="text" id="inputNama" placeholder="Wajib diisi" autocomplete="off"
+                    oninput="clearError(this); updateText('outNama', this.value)">
+            </div>
+
+            <div class="input-group">
+                <label>NIM <span class="required-mark">*</span></label>
+                <input type="text" id="inputNIM" placeholder="Wajib diisi" autocomplete="off"
+                    oninput="clearError(this); updateText('outNIM', this.value)">
+            </div>
+
+            <div class="input-group">
+                <label>Prodi <span class="required-mark">*</span></label>
+                <input type="text" id="inputKelompok" placeholder="Wajib diisi" autocomplete="off"
+                    oninput="clearError(this); updateText('outKelompok', this.value)">
+            </div>
+
+            <div class="input-group">
+                <label>Moto Hidup (Gunakan "") <span class="required-mark">*</span></label>
+                <textarea id="inputMoto" rows="2" placeholder="Wajib diisi" autocomplete="off"
+                    oninput="clearError(this); updateText('outMoto', this.value)"></textarea>
+            </div>
+
+            <button onclick="downloadImage()">Download Nametag</button>
+        </div>
+
+        <div id="preview-wrapper">
+            <div id="cardArea">
+                <img id="previewFoto" src="" style="display:none;">
+                <div id="outNama" class="text-overlay"><span class="field-label">NAMA</span><span
+                        class="field-colon">:</span><span id="valNama" class="field-val"></span></div>
+                <div id="outNIM" class="text-overlay"><span class="field-label">NIM</span><span
+                        class="field-colon">:</span><span id="valNIM" class="field-val"></span></div>
+                <div id="outKelompok" class="text-overlay"><span class="field-label">PRODI</span><span
+                        class="field-colon">:</span><span id="valKelompok" class="field-val"></span></div>
+                <div id="outMoto" class="text-overlay"><span class="field-label">MOTO HIDUP</span><span
+                        class="field-colon">:</span><span id="valMoto" class="field-val"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cropperModal" class="modal">
+        <div class="modal-content">
+            <h3>Sesuaikan Foto</h3>
+            <div class="img-container">
+                <img id="imageToCrop" src="">
+            </div>
+            <div style="margin-top:15px;">
+                <button class="btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="btn-crop" onclick="cropImage()">Potong & Gunakan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // UPDATE TEXT
+        function updateText(elementId, value) {
+            const map = {
+                'outNama': 'valNama',
+                'outNIM': 'valNIM',
+                'outKelompok': 'valKelompok',
+                'outMoto': 'valMoto'
+            };
+            const targetId = map[elementId] || elementId;
+            const el = document.getElementById(targetId);
+            if (el) {
+                el.innerText = value.toUpperCase();
+            }
+        }
+
+        // HAPUS ERROR STYLE SAAT KETIK
+        function clearError(element) {
+            element.classList.remove('input-error');
+        }
+
+        // CROPPER LOGIC
+        let cropper;
+        const modal = document.getElementById('cropperModal');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const inputFoto = document.getElementById('inputFoto');
+
+        inputFoto.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    imageToCrop.src = event.target.result;
+                    modal.style.display = 'flex';
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 210 / 303, // Rasio Sesuai Frame Foto
+                        viewMode: 1,
+                        autoCropArea: 1,
+                    });
+                }
+                reader.readAsDataURL(file);
+            }
+            this.value = null;
+        });
+
+        function cropImage() {
+            const canvas = cropper.getCroppedCanvas({ width: 420, height: 606 });
+            const previewFoto = document.getElementById('previewFoto');
+            previewFoto.src = canvas.toDataURL();
+            previewFoto.style.display = 'block';
+
+            // Hapus border error pada input file jika user sudah crop foto
+            document.getElementById('inputFoto').classList.remove('input-error');
+
+            closeModal();
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            if (cropper) { cropper.destroy(); cropper = null; }
+        }
+
+        // --- VALIDASI DAN DOWNLOAD LOGIC ---
+        function downloadImage() {
+            // Ambil element input
+            const namaEl = document.getElementById('inputNama');
+            const nimEl = document.getElementById('inputNIM');
+            const kelEl = document.getElementById('inputKelompok');
+            const motoEl = document.getElementById('inputMoto');
+            const fotoPreview = document.getElementById('previewFoto');
+            const fotoInput = document.getElementById('inputFoto');
+
+            let isValid = true;
+            let errorMessage = "Mohon lengkapi data berikut:\n";
+
+            // Validasi Foto (Cek apakah foto preview sudah muncul/visible)
+            if (fotoPreview.style.display === 'none' || fotoPreview.src === "") {
+                fotoInput.classList.add('input-error');
+                errorMessage += "- Upload dan sesuaikan Foto\n";
+                isValid = false;
+            }
+
+            // Validasi Nama
+            if (!namaEl.value.trim()) {
+                namaEl.classList.add('input-error');
+                errorMessage += "- Nama Lengkap\n";
+                isValid = false;
+            }
+
+            // Validasi NIM
+            if (!nimEl.value.trim()) {
+                nimEl.classList.add('input-error');
+                errorMessage += "- NIM\n";
+                isValid = false;
+            }
+
+            // Validasi Prodi
+            if (!kelEl.value.trim()) {
+                kelEl.classList.add('input-error');
+                errorMessage += "- Prodi\n";
+                isValid = false;
+            }
+
+            // Validasi Moto
+            if (!motoEl.value.trim()) {
+                motoEl.classList.add('input-error');
+                errorMessage += "- Moto Hidup\n";
+                isValid = false;
+            }
+
+            // JIKA BELUM VALID, STOP PROSES DAN TAMPILKAN ALERT
+            if (!isValid) {
+                alert(errorMessage);
+                return; // Stop disini
+            }
+
+            // JIKA VALID, LANJUT DOWNLOAD
+            const cardArea = document.getElementById('cardArea');
+            const btn = document.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "Memproses..."; btn.disabled = true;
+
+            html2canvas(cardArea, { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'MAFIKOM-NAMETAG-FINAL.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.innerText = originalText; btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+
+</html>
