@@ -15,18 +15,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
+        *, *:before, *:after {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #f3f4f6;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px;
+            padding: 30px 16px;
             color: #333;
+            margin: 0;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         h1 {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         .container {
@@ -35,6 +43,8 @@
             flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
+            width: 100%;
+            max-width: 1180px;
         }
 
         /* --- FORM INPUT --- */
@@ -43,7 +53,8 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-            width: 320px;
+            width: 340px;
+            max-width: 100%;
         }
 
         .input-group {
@@ -154,20 +165,39 @@
             background-color: #d35400;
         }
 
-        /* --- PREVIEW AREA (Fixed 787x591) --- */
+        /* --- PREVIEW AREA (Responsive Scaled 787x591) --- */
         #preview-wrapper {
-            border: 1px solid #ddd;
-            padding: 0px;
+            width: 100%;
+            max-width: 787px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #preview-container {
+            position: relative;
+            width: 787px;
+            max-width: 100%;
+            height: 591px;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid #d1d5db;
+            background-color: #0b1528;
+            transform-origin: top left;
         }
 
         #cardArea {
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 787px;
             height: 591px;
             background-image: url('IDCARD.png');
             background-size: 100% 100%;
             background-repeat: no-repeat;
             overflow: hidden;
+            transform-origin: top left;
         }
 
         /* --- FOTO --- */
@@ -307,6 +337,47 @@
             margin-right: 10px;
             cursor: pointer;
         }
+
+        /* --- RESPONSIVE MEDIA QUERIES UNTUK HP / LAYAR KECIL --- */
+        @media (max-width: 820px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 20px;
+            }
+
+            .container {
+                gap: 20px;
+            }
+
+            .input-section {
+                width: 100%;
+                max-width: 100%;
+                padding: 20px 16px;
+            }
+
+            #preview-wrapper {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            #preview-container {
+                width: 100%;
+                border-radius: 10px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 16px 12px;
+            }
+
+            .img-container {
+                max-height: 50vh;
+            }
+        }
     </style>
 </head>
 
@@ -352,20 +423,22 @@
                     oninput="clearError(this); updateText('outMoto', this.value)"></textarea>
             </div>
 
-            <button onclick="downloadImage()">Download Nametag</button>
+            <button id="btnDownload" onclick="downloadImage()">Download Nametag</button>
         </div>
 
         <div id="preview-wrapper">
-            <div id="cardArea">
-                <img id="previewFoto" src="" style="display:none;">
-                <div id="outNama" class="text-overlay"><span class="field-label">NAMA</span><span
-                        class="field-colon">:</span><span id="valNama" class="field-val"></span></div>
-                <div id="outNIM" class="text-overlay"><span class="field-label">NIM</span><span
-                        class="field-colon">:</span><span id="valNIM" class="field-val"></span></div>
-                <div id="outKelompok" class="text-overlay"><span class="field-label">PRODI</span><span
-                        class="field-colon">:</span><span id="valKelompok" class="field-val"></span></div>
-                <div id="outMoto" class="text-overlay"><span class="field-label">MOTO HIDUP</span><span
-                        class="field-colon">:</span><span id="valMoto" class="field-val"></span></div>
+            <div id="preview-container">
+                <div id="cardArea">
+                    <img id="previewFoto" src="" style="display:none;">
+                    <div id="outNama" class="text-overlay"><span class="field-label">NAMA</span><span
+                            class="field-colon">:</span><span id="valNama" class="field-val"></span></div>
+                    <div id="outNIM" class="text-overlay"><span class="field-label">NIM</span><span
+                            class="field-colon">:</span><span id="valNIM" class="field-val"></span></div>
+                    <div id="outKelompok" class="text-overlay"><span class="field-label">PRODI</span><span
+                            class="field-colon">:</span><span id="valKelompok" class="field-val"></span></div>
+                    <div id="outMoto" class="text-overlay"><span class="field-label">MOTO HIDUP</span><span
+                            class="field-colon">:</span><span id="valMoto" class="field-val"></span></div>
+                </div>
             </div>
         </div>
     </div>
@@ -514,17 +587,96 @@
 
             // JIKA VALID, LANJUT DOWNLOAD
             const cardArea = document.getElementById('cardArea');
-            const btn = document.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = "Memproses..."; btn.disabled = true;
+            const btn = document.getElementById('btnDownload') || document.querySelector('button');
+            const originalText = btn ? btn.innerText : "Download Nametag";
+            if (btn) {
+                btn.innerText = "Memproses...";
+                btn.disabled = true;
+            }
 
-            html2canvas(cardArea, { scale: 2, useCORS: true }).then(canvas => {
+            html2canvas(cardArea, {
+                scale: 2,
+                useCORS: true,
+                width: 787,
+                height: 591,
+                windowWidth: 1024,
+                windowHeight: 768,
+                scrollX: 0,
+                scrollY: 0,
+                onclone: (clonedDoc) => {
+                    const clonedContainer = clonedDoc.getElementById('preview-container');
+                    const clonedCard = clonedDoc.getElementById('cardArea');
+                    if (clonedContainer) {
+                        clonedContainer.style.width = '787px';
+                        clonedContainer.style.height = '591px';
+                        clonedContainer.style.overflow = 'visible';
+                        clonedContainer.style.transform = 'none';
+                        clonedContainer.style.position = 'static';
+                        clonedContainer.style.border = 'none';
+                        clonedContainer.style.boxShadow = 'none';
+                    }
+                    if (clonedCard) {
+                        clonedCard.style.transform = 'none';
+                        clonedCard.style.position = 'relative';
+                        clonedCard.style.top = '0';
+                        clonedCard.style.left = '0';
+                        clonedCard.style.width = '787px';
+                        clonedCard.style.height = '591px';
+                    }
+                }
+            }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'MAFIKOM-NAMETAG-FINAL.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                btn.innerText = originalText; btn.disabled = false;
+                if (btn) {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                console.error("Gagal download nametag:", err);
+                alert("Terjadi kesalahan saat memproses gambar nametag. Silakan coba lagi.");
+                if (btn) {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
             });
+        }
+
+        // --- DYNAMIC SCALING PREVIEW UNTUK HP & TABLET ---
+        function fitCardScale() {
+            const container = document.getElementById('preview-container');
+            const card = document.getElementById('cardArea');
+            if (!container || !card) return;
+
+            const baseWidth = 787;
+            const baseHeight = 591;
+
+            // Dapatkan lebar container aktual yang mengikuti lebar viewport HP
+            const currentWidth = container.clientWidth;
+
+            if (currentWidth > 0 && currentWidth < baseWidth) {
+                const scale = currentWidth / baseWidth;
+                card.style.transform = `scale(${scale})`;
+                container.style.height = `${baseHeight * scale}px`;
+            } else {
+                card.style.transform = 'none';
+                container.style.height = `${baseHeight}px`;
+            }
+        }
+
+        window.addEventListener('resize', fitCardScale);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(fitCardScale, 150);
+        });
+        window.addEventListener('DOMContentLoaded', fitCardScale);
+        window.addEventListener('load', fitCardScale);
+
+        if (window.ResizeObserver) {
+            const wrapper = document.getElementById('preview-wrapper');
+            if (wrapper) {
+                new ResizeObserver(() => fitCardScale()).observe(wrapper);
+            }
         }
     </script>
 </body>
