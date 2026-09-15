@@ -513,12 +513,12 @@
         /* --- FOTO DI DALAM KARTU --- */
         #previewFoto {
             position: absolute;
-            top: 185px;
-            left: 64px;
-            width: 210px;
-            height: 303px;
+            top: 183px;
+            left: 62px;
+            width: 214px;
+            height: 307px;
             object-fit: cover;
-            border-radius: 21px;
+            border-radius: 19px;
             z-index: 1;
         }
 
@@ -1188,7 +1188,7 @@
                 modal.style.display = 'flex';
                 if (cropper) cropper.destroy();
                 cropper = new Cropper(imageToCrop, {
-                    aspectRatio: 210 / 303, // Rasio Sesuai Frame Foto
+                    aspectRatio: 214 / 307, // Rasio Sesuai Frame Foto
                     viewMode: 1,
                     autoCropArea: 1,
                 });
@@ -1230,7 +1230,7 @@
         }
 
         function cropImage() {
-            const canvas = cropper.getCroppedCanvas({ width: 420, height: 606 });
+            const canvas = cropper.getCroppedCanvas({ width: 428, height: 614 });
             const previewFoto = document.getElementById('previewFoto');
             const dataUrl = canvas.toDataURL();
             previewFoto.src = dataUrl;
@@ -1546,7 +1546,7 @@
                         }
                         userImg.onload = () => {
                             ctx.save();
-                            const fx = 128, fy = 370, fw = 420, fh = 606, fr = 42;
+                            const fx = 124, fy = 366, fw = 428, fh = 614, fr = 38;
                             ctx.beginPath();
                             ctx.moveTo(fx + fr, fy);
                             ctx.lineTo(fx + fw - fr, fy);
