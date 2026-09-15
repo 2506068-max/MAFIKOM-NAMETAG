@@ -1029,24 +1029,21 @@
                         </div>
                         <div class="dropzone-text">
                             <span class="dropzone-title">Pilih / Seret Foto Formal</span>
-                            <span class="dropzone-desc">JPG, PNG (Dilengkapi Sensor Wajah AI)</span>
                         </div>
                     </div>
 
                     <div id="dropzoneScanning" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 6px;">
-                        <div class="face-scanner-anim">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-                                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-                                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                                <path d="M7 18c0-2.5 2.2-4 5-4s5 1.5 5 4"></path>
-                            </svg>
-                            <div class="scanner-laser"></div>
-                        </div>
-                        <span style="font-size: 0.88rem; font-weight: 700; color: #0284c7;">Memindai Wajah...</span>
-                        <span style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">Sensor AI sedang memverifikasi wajah manusia</span>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                            <line x1="12" y1="2" x2="12" y2="6"></line>
+                            <line x1="12" y1="18" x2="12" y2="22"></line>
+                            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                            <line x1="2" y1="12" x2="6" y2="12"></line>
+                            <line x1="18" y1="12" x2="22" y2="12"></line>
+                            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                        </svg>
+                        <span style="font-size: 0.88rem; font-weight: 700; color: #0284c7; margin-top: 8px;">Memproses...</span>
                     </div>
                 </div>
 
@@ -1054,8 +1051,8 @@
                 <div id="fotoUploadSuccess" class="foto-upload-success" style="display: none;">
                     <img id="fotoThumbnail" class="foto-thumbnail" src="" alt="Thumbnail Foto">
                     <div class="foto-status-info">
-                        <span class="foto-status-title">✓ Foto &amp; Wajah Terverifikasi!</span>
-                        <span class="foto-status-sub">Wajah terdeteksi dan siap dicetak di nametag</span>
+                        <span class="foto-status-title">✓ Foto Berhasil Diunggah!</span>
+                        <span class="foto-status-sub">Foto sudah siap dan terpasang di nametag</span>
                     </div>
                     <button type="button" class="btn-change-photo" onclick="triggerFilePicker()">Ganti</button>
                 </div>
