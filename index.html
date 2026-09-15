@@ -1197,6 +1197,11 @@
                 <img id="resultNametagImg" src="" alt="Hasil Nametag MAFIKOM">
             </div>
 
+            <div id="resultFileBox" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.82rem; font-weight: 700; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 12px; margin-bottom: 14px; word-break: break-all;">
+                <span>📁</span>
+                <span id="resultFileNameText">MAFIKOM-NAMETAG.png</span>
+            </div>
+
             <!-- Panduan Khusus iPhone / Safari -->
             <div id="iosGuideBox" class="result-guide-box">
                 <span class="result-guide-icon">📱</span>
@@ -1589,6 +1594,18 @@
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         };
 
+        function getDownloadFileName() {
+            const rawNama = (document.getElementById('inputNama')?.value || '').trim();
+            if (!rawNama) return 'MAFIKOM-NAMETAG.png';
+            // Bersihkan karakter khusus yang tidak valid dalam sistem file OS (Windows, Mac, Linux, Android)
+            const clean = rawNama
+                .replace(/[/\\?%*:|"<>.,;`'~!@#$^&*+=()[\]{}|]/g, ' ')
+                .trim()
+                .replace(/\s+/g, '-')
+                .toUpperCase();
+            return clean ? `MAFIKOM-NAMETAG-${clean}.png` : 'MAFIKOM-NAMETAG.png';
+        }
+
         function handleGeneratedCanvas(canvas, btn, originalHTML) {
             canvas.toBlob(async (blob) => {
                 if (btn) {
@@ -1601,16 +1618,24 @@
                     return;
                 }
 
+                const fileName = getDownloadFileName();
+                const rawNama = (document.getElementById('inputNama')?.value || '').trim().toUpperCase();
+
                 currentBlob = blob;
                 if (currentBlobUrl) {
                     URL.revokeObjectURL(currentBlobUrl);
                 }
                 currentBlobUrl = URL.createObjectURL(blob);
-                currentFile = new File([blob], 'MAFIKOM-NAMETAG-FINAL.png', { type: 'image/png' });
+                currentFile = new File([blob], fileName, { type: 'image/png' });
 
                 const resultImg = document.getElementById('resultNametagImg');
                 if (resultImg) {
                     resultImg.src = currentBlobUrl;
+                }
+
+                const resultFileNameText = document.getElementById('resultFileNameText');
+                if (resultFileNameText) {
+                    resultFileNameText.textContent = fileName;
                 }
 
                 const isIOS = isIOSDevice();
@@ -1626,13 +1651,15 @@
                     iosGuide.style.display = isIOS ? 'flex' : 'none';
                 }
 
+                const shareTitle = rawNama ? `MAFIKOM Nametag - ${rawNama}` : 'MAFIKOM Nametag';
+
                 if (isIOS) {
                     if (canShareFile) {
                         try {
                             await navigator.share({
                                 files: [currentFile],
-                                title: 'MAFIKOM Nametag',
-                                text: 'Simpan Nametag MAFIKOM ke Galeri Foto'
+                                title: shareTitle,
+                                text: `Simpan Nametag MAFIKOM ${rawNama ? '(' + rawNama + ') ' : ''}ke Galeri Foto`
                             });
                         } catch (shareErr) {
                             if (shareErr.name !== 'AbortError') {
@@ -1646,7 +1673,7 @@
                 } else {
                     try {
                         const link = document.createElement('a');
-                        link.download = 'MAFIKOM-NAMETAG-FINAL.png';
+                        link.download = fileName;
                         link.href = currentBlobUrl;
                         document.body.appendChild(link);
                         link.click();
@@ -1676,10 +1703,12 @@
         async function triggerNativeShare() {
             if (currentFile && navigator.canShare && navigator.canShare({ files: [currentFile] })) {
                 try {
+                    const rawNama = (document.getElementById('inputNama')?.value || '').trim().toUpperCase();
+                    const shareTitle = rawNama ? `MAFIKOM Nametag - ${rawNama}` : 'MAFIKOM Nametag';
                     await navigator.share({
                         files: [currentFile],
-                        title: 'MAFIKOM Nametag',
-                        text: 'Simpan Nametag MAFIKOM ke Galeri Foto'
+                        title: shareTitle,
+                        text: `Simpan Nametag MAFIKOM ${rawNama ? '(' + rawNama + ') ' : ''}ke Galeri Foto`
                     });
                 } catch (e) {
                     if (e.name !== 'AbortError') {
@@ -1693,8 +1722,9 @@
 
         function triggerDirectDownload() {
             if (!currentBlobUrl) return;
+            const fileName = (currentFile && currentFile.name) ? currentFile.name : getDownloadFileName();
             const link = document.createElement('a');
-            link.download = 'MAFIKOM-NAMETAG-FINAL.png';
+            link.download = fileName;
             link.href = currentBlobUrl;
             document.body.appendChild(link);
             link.click();
