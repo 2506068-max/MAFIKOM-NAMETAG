@@ -10,6 +10,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
+    <!-- AI Face Detection Sensor (Cross-Browser Client-Side) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -241,6 +245,42 @@
         .upload-dropzone:hover .dropzone-icon {
             transform: scale(1.08);
             background: #bae6fd;
+        }
+
+        .dropzone-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* --- ANIMASI SENSOR WAJAH --- */
+        .face-scanner-anim {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #e0f2fe;
+            margin-bottom: 8px;
+        }
+
+        .scanner-laser {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 2.5px;
+            background: linear-gradient(90deg, transparent, #0284c7, transparent);
+            box-shadow: 0 0 8px #0284c7;
+            animation: scanMove 1.1s ease-in-out infinite alternate;
+        }
+
+        @keyframes scanMove {
+            0% { top: 2px; opacity: 0.3; }
+            100% { top: 44px; opacity: 1; }
         }
 
         .dropzone-text {
@@ -975,19 +1015,38 @@
                     <span class="required-mark">*</span>
                 </label>
 
-                <!-- Modern Click & Drag Dropzone -->
-                <div id="dropzoneArea" class="upload-dropzone" onclick="document.getElementById('inputFoto').click()">
+                <!-- Modern Click & Drag Dropzone Dengan Sensor Wajah -->
+                <div id="dropzoneArea" class="upload-dropzone" onclick="triggerFilePicker()">
                     <input type="file" id="inputFoto" accept="image/*" style="display: none;">
-                    <div class="dropzone-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
+                    
+                    <div id="dropzoneDefault" class="dropzone-content-wrapper">
+                        <div class="dropzone-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="dropzone-text">
+                            <span class="dropzone-title">Pilih / Seret Foto Formal</span>
+                            <span class="dropzone-desc">JPG, PNG (Dilengkapi Sensor Wajah AI)</span>
+                        </div>
                     </div>
-                    <div class="dropzone-text">
-                        <span class="dropzone-title">Pilih / Seret Foto</span>
-                        <span class="dropzone-desc">JPG, PNG (Rasio 3:4 otomatis disesuaikan)</span>
+
+                    <div id="dropzoneScanning" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 6px;">
+                        <div class="face-scanner-anim">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                                <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                                <path d="M7 18c0-2.5 2.2-4 5-4s5 1.5 5 4"></path>
+                            </svg>
+                            <div class="scanner-laser"></div>
+                        </div>
+                        <span style="font-size: 0.88rem; font-weight: 700; color: #0284c7;">Memindai Wajah...</span>
+                        <span style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">Sensor AI sedang memverifikasi wajah manusia</span>
                     </div>
                 </div>
 
@@ -995,10 +1054,10 @@
                 <div id="fotoUploadSuccess" class="foto-upload-success" style="display: none;">
                     <img id="fotoThumbnail" class="foto-thumbnail" src="" alt="Thumbnail Foto">
                     <div class="foto-status-info">
-                        <span class="foto-status-title">✓ Foto Berhasil Diunggah!</span>
-                        <span class="foto-status-sub">Foto sudah siap dan terpasang di nametag</span>
+                        <span class="foto-status-title">✓ Foto &amp; Wajah Terverifikasi!</span>
+                        <span class="foto-status-sub">Wajah terdeteksi dan siap dicetak di nametag</span>
                     </div>
-                    <button type="button" class="btn-change-photo" onclick="document.getElementById('inputFoto').click()">Ganti</button>
+                    <button type="button" class="btn-change-photo" onclick="triggerFilePicker()">Ganti</button>
                 </div>
             </div>
 
@@ -1109,7 +1168,27 @@
         </div>
     </div>
 
-    <!-- MODAL HASIL DOWNLOAD & SIMPAN GAMBAR -->
+    <!-- MODAL PERINGATAN SENSOR WAJAH -->
+    <div id="faceErrorModal" class="modal">
+        <div class="modal-content" style="max-width: 440px; padding: 26px;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; border: 2px solid #fecaca; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #ef4444; font-size: 28px;">
+                🚫
+            </div>
+            <h3 style="color: #0f172a; margin: 0 0 8px; font-size: 1.25rem; font-weight: 800;">Wajah Tidak Terdeteksi!</h3>
+            <p style="color: #475569; font-size: 0.88rem; line-height: 1.55; margin: 0 0 22px;">
+                Sistem sensor mendeteksi bahwa gambar yang Anda unggah <strong>bukan foto wajah manusia</strong> atau wajah tidak terlihat jelas.<br><br>
+                Demi keseragaman nametag resmi <strong>MAFIKOM</strong>, mohon unggah <strong>foto formal diri Anda</strong> yang menampilkan wajah dengan jelas.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn-download-primary" style="margin: 0; width: auto; padding: 11px 22px; font-size: 0.88rem;" onclick="closeFaceErrorModal(); triggerFilePicker();">
+                    Pilih Foto Lain
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeFaceErrorModal();">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
     <div id="downloadResultModal" class="modal">
         <div class="result-modal-content">
             <div class="result-modal-header">
@@ -1165,6 +1244,79 @@
             element.classList.remove('input-error');
         }
 
+        // --- SENSOR WAJAH AI (FACE DETECTION) ---
+        let blazefaceModel = null;
+        let isModelLoading = false;
+
+        async function initFaceModel() {
+            if (!blazefaceModel && !isModelLoading && window.blazeface) {
+                isModelLoading = true;
+                try {
+                    blazefaceModel = await blazeface.load();
+                    console.log("✓ Model Sensor Wajah BlazeFace berhasil dimuat.");
+                } catch (e) {
+                    console.warn("Gagal memuat model BlazeFace:", e);
+                } finally {
+                    isModelLoading = false;
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initFaceModel);
+        window.addEventListener('load', initFaceModel);
+
+        async function detectFacesInImage(imageSource) {
+            // 1. Cek Native FaceDetector API (sangat cepat pada Chromium/Chrome/Edge)
+            if ('FaceDetector' in window) {
+                try {
+                    const nativeDetector = new window.FaceDetector({ maxDetectedFaces: 5, fastMode: true });
+                    const nativeFaces = await nativeDetector.detect(imageSource);
+                    if (nativeFaces && nativeFaces.length > 0) {
+                        return { detected: true, count: nativeFaces.length, method: 'native' };
+                    }
+                } catch (nativeErr) {
+                    console.log("Native FaceDetector fallback ke BlazeFace:", nativeErr);
+                }
+            }
+
+            // 2. Gunakan TensorFlow BlazeFace Model (Universal Cross-Browser)
+            if (!blazefaceModel && window.blazeface) {
+                await initFaceModel();
+            }
+
+            if (blazefaceModel) {
+                try {
+                    const predictions = await blazefaceModel.estimateFaces(imageSource, false);
+                    if (predictions && predictions.length > 0) {
+                        return { detected: true, count: predictions.length, method: 'blazeface' };
+                    } else {
+                        return { detected: false, count: 0, method: 'blazeface' };
+                    }
+                } catch (bfErr) {
+                    console.warn("BlazeFace inference error:", bfErr);
+                }
+            }
+
+            // 3. Fallback jika offline/CDN terhalang agar user tidak terhambat
+            return { detected: true, count: 1, method: 'fallback' };
+        }
+
+        function openFaceErrorModal() {
+            const modal = document.getElementById('faceErrorModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeFaceErrorModal() {
+            const modal = document.getElementById('faceErrorModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        let isScanningFace = false;
+        function triggerFilePicker() {
+            if (isScanningFace) return;
+            document.getElementById('inputFoto').click();
+        }
+
         // CROPPER & UPLOAD LOGIC
         let cropper;
         const modal = document.getElementById('cropperModal');
@@ -1172,22 +1324,69 @@
         const inputFoto = document.getElementById('inputFoto');
         const dropzone = document.getElementById('dropzoneArea');
 
-        function processSelectedFile(file) {
+        async function processSelectedFile(file) {
             if (!file) return;
             if (!file.type.startsWith('image/')) {
                 alert("Mohon pilih file bertipe gambar (JPG, PNG).");
                 return;
             }
+
+            const dropzoneDefault = document.getElementById('dropzoneDefault');
+            const dropzoneScanning = document.getElementById('dropzoneScanning');
+
+            // Tampilkan animasi pemindaian sensor wajah
+            isScanningFace = true;
+            if (dropzoneDefault && dropzoneScanning) {
+                dropzoneDefault.style.display = 'none';
+                dropzoneScanning.style.display = 'flex';
+            }
+
             const reader = new FileReader();
             reader.onload = function (event) {
-                imageToCrop.src = event.target.result;
-                modal.style.display = 'flex';
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(imageToCrop, {
-                    aspectRatio: 214 / 307, // Rasio Sesuai Frame Foto
-                    viewMode: 1,
-                    autoCropArea: 1,
-                });
+                const tempImg = new Image();
+                tempImg.onload = async function () {
+                    try {
+                        const faceResult = await detectFacesInImage(tempImg);
+
+                        isScanningFace = false;
+                        if (dropzoneDefault && dropzoneScanning) {
+                            dropzoneDefault.style.display = 'flex';
+                            dropzoneScanning.style.display = 'none';
+                        }
+
+                        if (!faceResult.detected) {
+                            openFaceErrorModal();
+                            return;
+                        }
+
+                        // Wajah valid! Buka cropper
+                        imageToCrop.src = event.target.result;
+                        modal.style.display = 'flex';
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(imageToCrop, {
+                            aspectRatio: 214 / 307, // Rasio Sesuai Frame Foto
+                            viewMode: 1,
+                            autoCropArea: 1,
+                        });
+                    } catch (scanErr) {
+                        console.error("Error scan wajah:", scanErr);
+                        isScanningFace = false;
+                        if (dropzoneDefault && dropzoneScanning) {
+                            dropzoneDefault.style.display = 'flex';
+                            dropzoneScanning.style.display = 'none';
+                        }
+                        // Fallback aman jika terjadi gangguan sistem
+                        imageToCrop.src = event.target.result;
+                        modal.style.display = 'flex';
+                        if (cropper) cropper.destroy();
+                        cropper = new Cropper(imageToCrop, {
+                            aspectRatio: 214 / 307,
+                            viewMode: 1,
+                            autoCropArea: 1,
+                        });
+                    }
+                };
+                tempImg.src = event.target.result;
             };
             reader.readAsDataURL(file);
         }
