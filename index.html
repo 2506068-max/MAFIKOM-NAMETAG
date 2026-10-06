@@ -14,6 +14,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
 
+    <!-- Supabase Cloud SDK & Configuration -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -863,6 +867,64 @@
             font-weight: 700;
         }
 
+        /* --- SUPABASE CLOUD STATUS BADGE --- */
+        .supabase-status-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f0fdf4;
+            border: 1.5px solid #86efac;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+        .supabase-status-box.loading {
+            background: #f0f9ff;
+            border-color: #7dd3fc;
+        }
+        .supabase-status-box.warning {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+        .supabase-status-box.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        .supabase-status-icon {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .supabase-status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+        .supabase-status-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #166534;
+        }
+        .supabase-status-desc {
+            font-size: 0.76rem;
+            line-height: 1.35;
+            color: #15803d;
+            word-break: break-word;
+        }
+        .supabase-status-box.loading .supabase-status-title { color: #0369a1; }
+        .supabase-status-box.loading .supabase-status-desc { color: #0284c7; }
+        .supabase-status-box.warning .supabase-status-title { color: #92400e; }
+        .supabase-status-box.warning .supabase-status-desc { color: #b45309; }
+        .supabase-status-box.error .supabase-status-title { color: #991b1b; }
+        .supabase-status-box.error .supabase-status-desc { color: #b91c1c; }
+
         .result-actions {
             display: flex;
             flex-direction: column;
@@ -1203,6 +1265,15 @@
                 <span id="resultFileNameText">MAFIKOM-NAMETAG.png</span>
             </div>
 
+            <!-- Status Sinkronisasi Cloud Supabase -->
+            <div id="supabaseStatusBox" class="supabase-status-box" style="display: none;">
+                <div class="supabase-status-icon" id="supabaseStatusIcon">☁️</div>
+                <div class="supabase-status-info">
+                    <span class="supabase-status-title" id="supabaseStatusTitle">Menyimpan ke Cloud...</span>
+                    <span class="supabase-status-desc" id="supabaseStatusDesc">Menyinkronkan data peserta &amp; foto ke database</span>
+                </div>
+            </div>
+
             <!-- Panduan Khusus iPhone / Safari -->
             <div id="iosGuideBox" class="result-guide-box">
                 <span class="result-guide-icon">📱</span>
@@ -1427,12 +1498,19 @@
             });
         }
 
+        let currentFotoBlob = null;
+
         function cropImage() {
             const canvas = cropper.getCroppedCanvas({ width: 428, height: 614 });
             const previewFoto = document.getElementById('previewFoto');
             const dataUrl = canvas.toDataURL();
             previewFoto.src = dataUrl;
             previewFoto.style.display = 'block';
+
+            // Simpan blob foto hasil crop untuk sinkronisasi Supabase
+            canvas.toBlob((blob) => {
+                currentFotoBlob = blob;
+            }, 'image/png');
 
             // Tampilkan tanda / badge sukses bahwa foto sudah diunggah
             const fotoSuccess = document.getElementById('fotoUploadSuccess');
@@ -1684,7 +1762,102 @@
                     }
                     openResultModal();
                 }
+
+                // Picu sinkronisasi data dan foto ke Supabase Cloud
+                triggerCloudSync(blob);
             }, 'image/png');
+        }
+
+        // --- SINKRONISASI KE SUPABASE CLOUD ---
+        async function getCroppedPhotoBlob() {
+            if (currentFotoBlob) return currentFotoBlob;
+            const previewFoto = document.getElementById('previewFoto');
+            if (!previewFoto || !previewFoto.src || previewFoto.style.display === 'none') {
+                return null;
+            }
+            try {
+                const res = await fetch(previewFoto.src);
+                return await res.blob();
+            } catch (e) {
+                console.warn("Gagal konversi preview foto ke blob:", e);
+                return null;
+            }
+        }
+
+        async function triggerCloudSync(nametagBlob) {
+            const statusBox = document.getElementById('supabaseStatusBox');
+            const statusIcon = document.getElementById('supabaseStatusIcon');
+            const statusTitle = document.getElementById('supabaseStatusTitle');
+            const statusDesc = document.getElementById('supabaseStatusDesc');
+
+            if (!statusBox) return;
+
+            // Jika fungsi Supabase belum siap
+            if (typeof window.syncParticipantToSupabase !== 'function' || !window.isSupabaseConfigured) {
+                return;
+            }
+
+            // Jika konfigurasi masih menggunakan placeholder default
+            if (!window.isSupabaseConfigured()) {
+                statusBox.style.display = 'flex';
+                statusBox.className = 'supabase-status-box warning';
+                statusIcon.textContent = '💡';
+                statusTitle.textContent = 'Penyimpanan Lokal Aktif';
+                statusDesc.textContent = 'Nametag tersimpan di perangkat. Masukkan Project URL & Anon Key di supabase-config.js untuk simpan otomatis ke Supabase.';
+                return;
+            }
+
+            // Tampilkan animasi status loading sinkronisasi
+            statusBox.style.display = 'flex';
+            statusBox.className = 'supabase-status-box loading';
+            statusIcon.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;">
+                    <line x1="12" y1="2" x2="12" y2="6"></line>
+                    <line x1="12" y1="18" x2="12" y2="22"></line>
+                    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                    <line x1="2" y1="12" x2="6" y2="12"></line>
+                    <line x1="18" y1="12" x2="22" y2="12"></line>
+                    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                </svg>`;
+            statusTitle.textContent = 'Menyimpan ke Cloud Supabase...';
+            statusDesc.textContent = 'Sedang mengunggah foto formal & mencatat data peserta ke database cloud';
+
+            try {
+                const rawNama = (document.getElementById('inputNama')?.value || '').trim();
+                const rawNIM = (document.getElementById('inputNIM')?.value || '').trim();
+                const rawProdi = (document.getElementById('inputKelompok')?.value || '').trim();
+                const rawMoto = (document.getElementById('inputMoto')?.value || '').trim();
+                const fotoBlob = await getCroppedPhotoBlob();
+
+                const syncRes = await window.syncParticipantToSupabase({
+                    nim: rawNIM,
+                    nama: rawNama,
+                    prodi: rawProdi,
+                    moto: rawMoto,
+                    fotoBlob: fotoBlob,
+                    nametagBlob: nametagBlob
+                });
+
+                if (syncRes.success) {
+                    statusBox.className = 'supabase-status-box';
+                    statusIcon.textContent = '☁️';
+                    statusTitle.textContent = '✓ Tersimpan di Database Supabase!';
+                    statusDesc.textContent = 'Foto formal dan data peserta berhasil disimpan di cloud panitia.';
+                } else {
+                    statusBox.className = 'supabase-status-box error';
+                    statusIcon.textContent = '⚠️';
+                    statusTitle.textContent = 'Gagal Sinkronisasi Cloud';
+                    statusDesc.textContent = syncRes.message || 'Periksa koneksi internet atau permission bucket Supabase.';
+                }
+            } catch (syncErr) {
+                console.error("Gagal sinkronisasi Supabase:", syncErr);
+                statusBox.className = 'supabase-status-box error';
+                statusIcon.textContent = '⚠️';
+                statusTitle.textContent = 'Koneksi Cloud Terkendala';
+                statusDesc.textContent = syncErr.message || 'Gagal terhubung ke Supabase.';
+            }
         }
 
         function openResultModal() {

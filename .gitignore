@@ -1,0 +1,17 @@
+# Node & Dependency
+node_modules/
+npm-debug.log*
+
+# Database & Upload lokal
+*.db
+uploads/
+
+# Environment Variables & Kredensial Rahasia
+.env
+.env.local
+.env.*.local
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
