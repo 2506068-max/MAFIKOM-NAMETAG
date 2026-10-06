@@ -574,10 +574,10 @@
             color: #ffffff;
             font-family: 'Montserrat', sans-serif;
             font-weight: 800;
-            font-size: 15.5pt;
+            font-size: 13.5pt;
             z-index: 2;
             text-align: left;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.4px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
             -webkit-font-smoothing: antialiased;
             display: flex;
@@ -586,7 +586,7 @@
 
         .text-overlay .field-label {
             display: inline-block;
-            width: 135px;
+            width: 152px;
             flex-shrink: 0;
             white-space: nowrap;
         }
@@ -603,28 +603,28 @@
         }
 
         #outNama {
-            top: 230px;
+            top: 232px;
             left: 295px;
             max-width: 460px;
             line-height: 1.25;
         }
 
         #outNIM {
-            top: 282px;
+            top: 284px;
             left: 295px;
             max-width: 460px;
             white-space: nowrap;
         }
 
         #outKelompok {
-            top: 334px;
+            top: 336px;
             left: 295px;
             max-width: 460px;
             line-height: 1.25;
         }
 
         #outMoto {
-            top: 386px;
+            top: 388px;
             left: 295px;
             width: 460px;
             line-height: 1.35;
@@ -1969,7 +1969,7 @@
 
                 function drawTexts() {
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '800 41px "Montserrat", sans-serif';
+                    ctx.font = '800 36px "Montserrat", sans-serif';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                     ctx.shadowOffsetY = 4;
                     ctx.shadowBlur = 8;
@@ -1980,24 +1980,24 @@
                     const moto = (document.getElementById('inputMoto').value || '').toUpperCase();
 
                     // NAMA
-                    ctx.fillText('NAMA', 590, 494);
-                    ctx.fillText(':', 860, 494);
-                    ctx.fillText(nama, 890, 494);
+                    ctx.fillText('NAMA', 590, 498);
+                    ctx.fillText(':', 894, 498);
+                    ctx.fillText(nama, 918, 498);
 
                     // NIM
-                    ctx.fillText('NIM', 590, 598);
-                    ctx.fillText(':', 860, 598);
-                    ctx.fillText(nim, 890, 598);
+                    ctx.fillText('NIM', 590, 602);
+                    ctx.fillText(':', 894, 602);
+                    ctx.fillText(nim, 918, 602);
 
                     // KELOMPOK
-                    ctx.fillText('KELOMPOK', 590, 702);
-                    ctx.fillText(':', 860, 702);
-                    ctx.fillText(kelompok, 890, 702);
+                    ctx.fillText('KELOMPOK', 590, 706);
+                    ctx.fillText(':', 894, 706);
+                    ctx.fillText(kelompok, 918, 706);
 
                     // MOTO HIDUP
-                    ctx.fillText('MOTO HIDUP', 590, 806);
-                    ctx.fillText(':', 860, 806);
-                    ctx.fillText(moto, 890, 806);
+                    ctx.fillText('MOTO HIDUP', 590, 810);
+                    ctx.fillText(':', 894, 810);
+                    ctx.fillText(moto, 918, 810);
                 }
             });
         }
