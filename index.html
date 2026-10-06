@@ -586,8 +586,9 @@
 
         .text-overlay .field-label {
             display: inline-block;
-            width: 88px;
+            width: 135px;
             flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .text-overlay .field-colon {
@@ -599,15 +600,6 @@
         .text-overlay .field-val {
             flex: 1;
             word-break: break-word;
-        }
-
-        #outMoto .field-label {
-            width: auto;
-        }
-
-        #outMoto .field-colon {
-            margin-left: 6px;
-            margin-right: 12px;
         }
 
         #outNama {
@@ -1147,15 +1139,15 @@
                 </div>
             </div>
 
-            <!-- Program Studi -->
+            <!-- Kelompok -->
             <div class="input-group">
                 <label class="field-heading">
-                    <span class="field-icon">🎓</span>
-                    <span>Program Studi</span>
+                    <span class="field-icon">👥</span>
+                    <span>Kelompok</span>
                     <span class="required-mark">*</span>
                 </label>
                 <div class="input-wrapper">
-                    <input type="text" id="inputKelompok" placeholder="Contoh: TEKNIK INFORMATIKA" autocomplete="off"
+                    <input type="text" id="inputKelompok" placeholder="Contoh: KELOMPOK 01" autocomplete="off"
                         oninput="clearError(this); updateText('outKelompok', this.value)">
                 </div>
             </div>
@@ -1201,7 +1193,7 @@
                             class="field-colon">:</span><span id="valNama" class="field-val"></span></div>
                     <div id="outNIM" class="text-overlay"><span class="field-label">NIM</span><span
                             class="field-colon">:</span><span id="valNIM" class="field-val"></span></div>
-                    <div id="outKelompok" class="text-overlay"><span class="field-label">PRODI</span><span
+                    <div id="outKelompok" class="text-overlay"><span class="field-label">KELOMPOK</span><span
                             class="field-colon">:</span><span id="valKelompok" class="field-val"></span></div>
                     <div id="outMoto" class="text-overlay"><span class="field-label">MOTO HIDUP</span><span
                             class="field-colon">:</span><span id="valMoto" class="field-val"></span></div>
@@ -1570,10 +1562,10 @@
                 isValid = false;
             }
 
-            // Validasi Prodi
+            // Validasi Kelompok
             if (!kelEl.value.trim()) {
                 kelEl.classList.add('input-error');
-                errorMessage += "- Program Studi\n";
+                errorMessage += "- Kelompok\n";
                 isValid = false;
             }
 
@@ -1827,14 +1819,15 @@
             try {
                 const rawNama = (document.getElementById('inputNama')?.value || '').trim();
                 const rawNIM = (document.getElementById('inputNIM')?.value || '').trim();
-                const rawProdi = (document.getElementById('inputKelompok')?.value || '').trim();
+                const rawKelompok = (document.getElementById('inputKelompok')?.value || '').trim();
                 const rawMoto = (document.getElementById('inputMoto')?.value || '').trim();
                 const fotoBlob = await getCroppedPhotoBlob();
 
                 const syncRes = await window.syncParticipantToSupabase({
                     nim: rawNIM,
                     nama: rawNama,
-                    prodi: rawProdi,
+                    kelompok: rawKelompok,
+                    prodi: rawKelompok,
                     moto: rawMoto,
                     fotoBlob: fotoBlob,
                     nametagBlob: nametagBlob
@@ -1983,29 +1976,28 @@
 
                     const nama = (document.getElementById('inputNama').value || '').toUpperCase();
                     const nim = (document.getElementById('inputNIM').value || '').toUpperCase();
-                    const prodi = (document.getElementById('inputKelompok').value || '').toUpperCase();
+                    const kelompok = (document.getElementById('inputKelompok').value || '').toUpperCase();
                     const moto = (document.getElementById('inputMoto').value || '').toUpperCase();
 
                     // NAMA
                     ctx.fillText('NAMA', 590, 494);
-                    ctx.fillText(':', 766, 494);
-                    ctx.fillText(nama, 800, 494);
+                    ctx.fillText(':', 860, 494);
+                    ctx.fillText(nama, 890, 494);
 
                     // NIM
                     ctx.fillText('NIM', 590, 598);
-                    ctx.fillText(':', 766, 598);
-                    ctx.fillText(nim, 800, 598);
+                    ctx.fillText(':', 860, 598);
+                    ctx.fillText(nim, 890, 598);
 
-                    // PRODI
-                    ctx.fillText('PRODI', 590, 702);
-                    ctx.fillText(':', 766, 702);
-                    ctx.fillText(prodi, 800, 702);
+                    // KELOMPOK
+                    ctx.fillText('KELOMPOK', 590, 702);
+                    ctx.fillText(':', 860, 702);
+                    ctx.fillText(kelompok, 890, 702);
 
                     // MOTO HIDUP
                     ctx.fillText('MOTO HIDUP', 590, 806);
-                    const motoLabelW = ctx.measureText('MOTO HIDUP').width;
-                    ctx.fillText(':', 590 + motoLabelW + 12, 806);
-                    ctx.fillText(moto, 590 + motoLabelW + 40, 806);
+                    ctx.fillText(':', 860, 806);
+                    ctx.fillText(moto, 890, 806);
                 }
             });
         }

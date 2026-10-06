@@ -47,7 +47,7 @@ db.run(`
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nim TEXT UNIQUE NOT NULL,
         nama_lengkap TEXT NOT NULL,
-        nama_prodi_text TEXT NOT NULL,
+        kelompok TEXT NOT NULL,
         moto_hidup TEXT NOT NULL,
         foto_formal_url TEXT NOT NULL,
         download_count INTEGER DEFAULT 1,
@@ -64,9 +64,10 @@ app.use('/uploads', express.static(uploadDir));
 // Endpoint POST: Simpan atau Perbarui Data Peserta
 app.post('/api/peserta', upload.single('foto'), (req, res) => {
     try {
-        const { nim, nama, prodi, moto } = req.body;
+        const { nim, nama, kelompok, prodi, moto } = req.body;
+        const kelompokVal = kelompok || prodi;
 
-        if (!nim || !nama || !prodi || !moto) {
+        if (!nim || !nama || !kelompokVal || !moto) {
             return res.status(400).json({ success: false, message: 'Semua field wajib diisi!' });
         }
 
@@ -74,18 +75,18 @@ app.post('/api/peserta', upload.single('foto'), (req, res) => {
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
         const query = `
-            INSERT INTO peserta_nametag (nim, nama_lengkap, nama_prodi_text, moto_hidup, foto_formal_url, ip_address)
+            INSERT INTO peserta_nametag (nim, nama_lengkap, kelompok, moto_hidup, foto_formal_url, ip_address)
             VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(nim) DO UPDATE SET
                 nama_lengkap = excluded.nama_lengkap,
-                nama_prodi_text = excluded.nama_prodi_text,
+                kelompok = excluded.kelompok,
                 moto_hidup = excluded.moto_hidup,
                 foto_formal_url = COALESCE(NULLIF(excluded.foto_formal_url, ''), peserta_nametag.foto_formal_url),
                 download_count = peserta_nametag.download_count + 1,
                 updated_at = CURRENT_TIMESTAMP
         `;
 
-        db.run(query, [nim, nama, prodi, moto, fotoUrl, ip], function(err) {
+        db.run(query, [nim, nama, kelompokVal, moto, fotoUrl, ip], function(err) {
             if (err) {
                 console.error("Database error:", err.message);
                 return res.status(500).json({ success: false, message: 'Gagal menyimpan ke database' });
@@ -93,7 +94,7 @@ app.post('/api/peserta', upload.single('foto'), (req, res) => {
             res.json({
                 success: true,
                 message: 'Data berhasil disimpan!',
-                data: { id: this.lastID, nim, nama, prodi, fotoUrl }
+                data: { id: this.lastID, nim, nama, kelompok: kelompokVal, fotoUrl }
             });
         });
     } catch (e) {

@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.peserta_nametag (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nim VARCHAR(20) NOT NULL UNIQUE,
     nama_lengkap VARCHAR(150) NOT NULL,
-    nama_prodi_text VARCHAR(100) NOT NULL,
+    kelompok VARCHAR(100) NOT NULL,
     moto_hidup TEXT NOT NULL,
     
     -- URL Aset di Supabase Storage
@@ -36,10 +36,13 @@ CREATE TABLE IF NOT EXISTS public.peserta_nametag (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Migrasi aman jika tabel sebelumnya dibuat dengan nama_prodi_text
+ALTER TABLE public.peserta_nametag ADD COLUMN IF NOT EXISTS kelompok VARCHAR(100);
+
 -- Indexing
 CREATE INDEX IF NOT EXISTS idx_peserta_nim ON public.peserta_nametag(nim);
 CREATE INDEX IF NOT EXISTS idx_peserta_nama ON public.peserta_nametag(nama_lengkap);
-CREATE INDEX IF NOT EXISTS idx_peserta_prodi ON public.peserta_nametag(nama_prodi_text);
+CREATE INDEX IF NOT EXISTS idx_peserta_kelompok ON public.peserta_nametag(kelompok);
 CREATE INDEX IF NOT EXISTS idx_peserta_created ON public.peserta_nametag(created_at DESC);
 
 -- Trigger auto update updated_at
@@ -143,7 +146,7 @@ SELECT
     id,
     nim,
     nama_lengkap,
-    nama_prodi_text AS program_studi,
+    COALESCE(kelompok, nama_prodi_text) AS kelompok,
     moto_hidup,
     foto_formal_url,
     nametag_result_url,
@@ -153,12 +156,12 @@ SELECT
 FROM public.peserta_nametag
 ORDER BY created_at DESC;
 
--- Statistik per program studi
-CREATE OR REPLACE VIEW public.view_statistik_prodi AS
+-- Statistik per kelompok
+CREATE OR REPLACE VIEW public.view_statistik_kelompok AS
 SELECT 
-    nama_prodi_text AS program_studi,
+    COALESCE(kelompok, nama_prodi_text) AS kelompok,
     COUNT(*) AS total_peserta,
     SUM(download_count) AS total_download
 FROM public.peserta_nametag
-GROUP BY nama_prodi_text
+GROUP BY COALESCE(kelompok, nama_prodi_text)
 ORDER BY total_peserta DESC;

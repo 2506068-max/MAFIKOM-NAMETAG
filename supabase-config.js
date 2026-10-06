@@ -65,13 +65,14 @@ function getSupabaseClient() {
  * @param {Object} params
  * @param {string} params.nim - NIM Mahasiswa
  * @param {string} params.nama - Nama Lengkap Mahasiswa
- * @param {string} params.prodi - Program Studi
+ * @param {string} [params.kelompok] - Kelompok Mahasiswa
+ * @param {string} [params.prodi] - Alias kelompok
  * @param {string} params.moto - Moto Hidup
  * @param {Blob} params.fotoBlob - Blob Foto Formal hasil crop
  * @param {Blob} params.nametagBlob - Blob Gambar Nametag PNG hasil generate
  * @returns {Promise<{success: boolean, message: string, data?: any}>}
  */
-async function syncParticipantToSupabase({ nim, nama, prodi, moto, fotoBlob, nametagBlob }) {
+async function syncParticipantToSupabase({ nim, nama, kelompok, prodi, moto, fotoBlob, nametagBlob }) {
     if (!isSupabaseConfigured()) {
         return {
             success: false,
@@ -153,11 +154,12 @@ async function syncParticipantToSupabase({ nim, nama, prodi, moto, fotoBlob, nam
             }
         }
 
+        const kelompokVal = (kelompok || prodi || '').trim().toUpperCase();
+
         // 4. UPSERT KE TABEL peserta_nametag BERDASARKAN NIM
-        const record = {
+        const baseRecord = {
             nim: nim.trim(),
             nama_lengkap: nama.trim().toUpperCase(),
-            nama_prodi_text: prodi.trim().toUpperCase(),
             moto_hidup: moto.trim(),
             foto_formal_url: fotoPublicUrl,
             nametag_result_url: nametagPublicUrl || null,
@@ -167,10 +169,22 @@ async function syncParticipantToSupabase({ nim, nama, prodi, moto, fotoBlob, nam
             updated_at: new Date().toISOString()
         };
 
-        const { data: insertedData, error: dbError } = await client
+        // Coba simpan dengan kolom 'kelompok'
+        let { data: insertedData, error: dbError } = await client
             .from(SUPABASE_CONFIG.tableName)
-            .upsert(record, { onConflict: 'nim' })
+            .upsert({ ...baseRecord, kelompok: kelompokVal }, { onConflict: 'nim' })
             .select();
+
+        // Fallback jika kolom di tabel DB masih bernama 'nama_prodi_text'
+        if (dbError && dbError.message && dbError.message.toLowerCase().includes('kelompok')) {
+            console.warn("[Supabase] Kolom 'kelompok' belum ada di DB, mencoba fallback ke 'nama_prodi_text'...");
+            const fallbackRes = await client
+                .from(SUPABASE_CONFIG.tableName)
+                .upsert({ ...baseRecord, nama_prodi_text: kelompokVal }, { onConflict: 'nim' })
+                .select();
+            insertedData = fallbackRes.data;
+            dbError = fallbackRes.error;
+        }
 
         if (dbError) {
             console.error("[Supabase] Gagal menyimpan ke tabel peserta_nametag:", dbError);

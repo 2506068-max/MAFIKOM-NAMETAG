@@ -13,7 +13,7 @@ Berdasarkan formulir input dan proses generate nametag pada aplikasi, data yang 
 | :--- | :--- | :--- |
 | **NIM** | `VARCHAR(20)` | **Unique Identifier**. Identitas unik setiap mahasiswa (contoh: `2406001`). |
 | **Nama Lengkap** | `VARCHAR(150)` | Nama mahasiswa sesuai form (contoh: `AHMAD FAUZI`). |
-| **Program Studi** | `VARCHAR(100)` | Program studi di FIKOM ITG (Teknik Informatika, Sistem Informasi, dll.). |
+| **Kelompok** | `VARCHAR(100)` | Kelompok peserta MAFIKOM (contoh: `KELOMPOK 01`). |
 | **Moto Hidup** | `TEXT` | Moto hidup mahasiswa (biasanya diapit tanda kutip). |
 | **Foto Formal** | `VARCHAR(500)` / `TEXT` | **URL / Path File Foto** (disimpan di file storage, BUKAN binary di DB). |
 | **File Hasil Nametag** | `VARCHAR(500)` / `TEXT` | *(Opsional)* URL hasil render gambar nametag PNG. |
